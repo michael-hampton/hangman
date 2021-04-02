@@ -93,6 +93,10 @@ export default class Game extends Component {
         }
     }
 
+    showHint = () => {
+        this.setState({ attempts: this.state.attempts - 2, show_hint: true })
+    }
+
     reset = (difficulty) => {
         const level = this.matchDifficultyToLength ( difficulty )
         
@@ -187,7 +191,7 @@ export default class Game extends Component {
                     <Guesses wrongLetters={wrongLetters}/>
                     <AttemptsLeft attempts={attempts}/>
                 </div>
-                <Word selectedWord={selectedWord} selectedClue={selectedClue} correctLetters={correctLetters}/>
+                <Word attempts={attempts} showHint={this.showHint} hint_displayed={show_hint} selectedWord={selectedWord} selectedClue={selectedClue} correctLetters={correctLetters}/>
 
                 <Keyboard onClick={this.handleClick} excluded={wrongLetters}/></div>
 
