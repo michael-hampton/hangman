@@ -14,24 +14,24 @@ export default class Game extends Component {
         super ( props );
 
         //this.words = words
-        this.countries_json = countries
+        this.country_json = countries
 
-        this.settings = [
+        this.settings = {
             easy: {
                 min: 5,
                 max: 8
             },
 
             medium: {
-                min: 8
+                min: 8,
                 max: 10
             },
 
             hard: {
-                min: 10
+                min: 10,
                 max: 12
             }
-        ]
+        }
 
         this.state = {
             correctLetters: [],
@@ -62,13 +62,13 @@ export default class Game extends Component {
     }
 
     checkLetter = ( letter ) => {
-        let { selectedWord, correctLetters, wrongLetters, attempts } = this.state
+        let { selectedWord, correctLetters, wrongLetters, attempts, show_hint } = this.state
 
         if ( selectedWord.includes ( letter ) ) {
             if ( !correctLetters.includes ( letter ) ) {
                 const correct = [...correctLetters]
                 correct.push ( letter )
-                const win = checkWin ( correct, wrongLetters, selectedWord )
+                const win = checkWin ( correct, wrongLetters, selectedWord, show_hint )
                 const playable = win !== 'win' && win !== 'lose'
 
                 this.setState ( { correctLetters: correct, win: win, playable: playable } )
@@ -81,7 +81,7 @@ export default class Game extends Component {
             if ( !wrongLetters.includes ( letter ) ) {
                 const wrong = [...wrongLetters]
                 wrong.push ( letter )
-                const win = checkWin ( correctLetters, wrong, selectedWord )
+                const win = checkWin ( correctLetters, wrong, selectedWord, show_hint )
                 const playable = win !== 'win' && win !== 'lose'
 
                 this.setState ( { wrongLetters: wrong, win: win, attempts: attempts - 1, playable: playable } )
@@ -101,36 +101,49 @@ export default class Game extends Component {
         const level = this.matchDifficultyToLength ( difficulty )
         
         const setting = this.settings[difficulty]
+
+        // countries of a certain length are chosen depending on level of difficulty (easy, medium, hard)
         const countries = this.country_json.filter(country => {
-            return country.length >= setting.min && country.length <= setting.max
+            return country.name.length >= setting.min && country.name.length <= setting.max
         })
 
+        console.log('countries', countries)
+
+        // get random country from filtered list that hasnt been used
         const wordObject = findWord(countries, this.state.chosenWords)
 
-        const selectedClue = wordObject.iso_code
+        // get hint
+        const selectedClue = difficulty === 'easy' ? wordObject.iso : wordObject.iso3
 
+        // get country name
+        const country_name = wordObject.name.toLowerCase()
+
+        // add new country to chosen array so it doesnt get shown again
         const chosen = this.state.chosenWords
-        chosen.push(wordObject.answer.toLowerCase())
+        chosen.push(country_name)
 
+        // get letters to reveal
         const correctLetters = []
 
-        const wordsArray = wordObject.answer.split()
+        const wordsArray = country_name.split('')
+
         correctLetters.push(wordsArray[2], wordsArray[4])
 
-        if(wordObject.answer.length >= 8) { 
+        if(country_name.length >= 8) {
             correctLetters.push(wordsArray[8])
         }
 
         this.setState ( {
             difficulty: difficulty,
             playable: true,
-            correctLetters: [],
+            correctLetters: correctLetters,
             wrongLetters: [],
-            selectedWord: wordObject.answer,
+            selectedWord: country_name,
             selectedClue: selectedClue,
             chosenWords: chosen,
             win: null,
-            attempts: 6
+            attempts: 6,
+            show_hint: false,
         } )
     }
 
@@ -176,6 +189,7 @@ export default class Game extends Component {
     render () {
         const { correctLetters, selectedWord, selectedClue, wrongLetters, show_error, win, attempts, difficulty, show_hint } = this.state
         const show_popup = win === 'win' || (win === 'lose' && attempts === 0)
+
         const difficultySelector = <div>
             <span className="difficulty-level" data-level="easy" onClick={this.changeDifficulty}>Easy</span>
             <span className="difficulty-level" data-level="medium" onClick={this.changeDifficulty}>Medium</span>
@@ -191,7 +205,7 @@ export default class Game extends Component {
                     <Guesses wrongLetters={wrongLetters}/>
                     <AttemptsLeft attempts={attempts}/>
                 </div>
-                <Word attempts={attempts} showHint={this.showHint} hint_displayed={show_hint} selectedWord={selectedWord} selectedClue={selectedClue} correctLetters={correctLetters}/>
+                <Word attempts={attempts} showHint={this.showHint} display_hint={show_hint} selectedWord={selectedWord} selectedClue={selectedClue} correctLetters={correctLetters}/>
 
                 <Keyboard onClick={this.handleClick} excluded={wrongLetters}/></div>
 

@@ -11,7 +11,7 @@ const Word = (props) => {
                 })}
             </div>
 
-            <p>{props.display_hint ? props.selectedClue : <a href="#" onClick={props.showHint}>show hint </a>}</p>
+            <p>{props.display_hint ? props.selectedClue : <a href="#" onClick={props.showHint}>show hint (you will lose 2 lives) </a>}</p>
         </div>
 
     )

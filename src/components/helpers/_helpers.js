@@ -5,17 +5,18 @@ export function showNotification ( setter ) {
     }, 2000 )
 }
 
-export function checkWin ( correct, wrong, word ) {
+export function checkWin ( correct, wrong, word, hint_enabled ) {
 
     let status = 'win'
+    const allowed_count = hint_enabled === true ? 4 : 6
 
     word.split ( '' ).forEach ( letter => {
-        if ( !correct.includes ( letter ) && letter !== '-' ) {
+        if ( !correct.includes ( letter ) && letter !== ' ' ) {
             status = ''
         }
     } )
 
-    if ( wrong.length === 6 ) {
+    if ( wrong.length === allowed_count ) {
         status = 'lose'
     }
 
@@ -33,9 +34,10 @@ export function findWord ( words, chosenWords ) {
 
     do {
         const random = Math.floor ( Math.random () * words.length )
+
         selectedWord = words[ random ]
 
-        found = !chosenWords.length || !chosenWords.includes ( selectedWord.answer.toLowerCase () )
+        found = !chosenWords.length || !chosenWords.includes ( selectedWord.name.toLowerCase () )
 
     } while ( found === false )
 
