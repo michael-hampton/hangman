@@ -13,20 +13,38 @@ export default class Game extends Component {
     constructor ( props ) {
         super ( props );
 
-        this.words = words
-        this.countries = countries
+        //this.words = words
+        this.countries_json = countries
+
+        this.settings = [
+            easy: {
+                min: 5,
+                max: 8
+            },
+
+            medium: {
+                min: 8
+                max: 10
+            },
+
+            hard: {
+                min: 10
+                max: 12
+            }
+        ]
 
         this.state = {
             correctLetters: [],
             wrongLetters: [],
             chosenWords: [],
-            selectedWord: this.countries[ 5 ][ Math.floor ( Math.random () * this.countries[ 5 ].length ) ].answer.toLowerCase(),
-            selectedClue: this.countries[ 5 ][ Math.floor ( Math.random () * this.countries[ 5 ].length ) ].clue,
+            //selectedWord: this.countries[ 5 ][ Math.floor ( Math.random () * this.countries[ 5 ].length ) ].answer.toLowerCase(),
+            //selectedClue: this.countries[ 5 ][ Math.floor ( Math.random () * this.countries[ 5 ].length ) ].clue,
             playable: true,
             show_error: false,
             win: null,
             attempts: 6,
-            difficulty: null
+            difficulty: null,
+            show_hint: false,
         }
     }
 
@@ -75,22 +93,29 @@ export default class Game extends Component {
         }
     }
 
-    displayWord = () => {
-
-    }
-
-    showNotification = () => {
-
-    }
-
     reset = (difficulty) => {
         const level = this.matchDifficultyToLength ( difficulty )
-        const wordObject = findWord(this.countries[level], this.state.chosenWords)
+        
+        const setting = this.settings[difficulty]
+        const countries = this.country_json.filter(country => {
+            return country.length >= setting.min && country.length <= setting.max
+        })
 
-        const selectedClue = wordObject.clue
+        const wordObject = findWord(countries, this.state.chosenWords)
+
+        const selectedClue = wordObject.iso_code
 
         const chosen = this.state.chosenWords
         chosen.push(wordObject.answer.toLowerCase())
+
+        const correctLetters = []
+
+        const wordsArray = wordObject.answer.split()
+        correctLetters.push(wordsArray[2], wordsArray[4])
+
+        if(wordObject.answer.length >= 8) { 
+            correctLetters.push(wordsArray[8])
+        }
 
         this.setState ( {
             difficulty: difficulty,
@@ -145,7 +170,7 @@ export default class Game extends Component {
     }
 
     render () {
-        const { correctLetters, selectedWord, selectedClue, wrongLetters, show_error, win, attempts, difficulty } = this.state
+        const { correctLetters, selectedWord, selectedClue, wrongLetters, show_error, win, attempts, difficulty, show_hint } = this.state
         const show_popup = win === 'win' || (win === 'lose' && attempts === 0)
         const difficultySelector = <div>
             <span className="difficulty-level" data-level="easy" onClick={this.changeDifficulty}>Easy</span>
@@ -158,7 +183,7 @@ export default class Game extends Component {
             <div style={{ width: '50%', float: 'left' }}>
                 <div className="game-container">
                     <h2>{difficulty}</h2>
-                    <Hangman wrongLetters={wrongLetters}/>
+                    <Hangman attempts={attempts} wrongLetters={wrongLetters}/>
                     <Guesses wrongLetters={wrongLetters}/>
                     <AttemptsLeft attempts={attempts}/>
                 </div>
